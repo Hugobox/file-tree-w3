@@ -1,0 +1,24 @@
+{
+  "name": "file-tree-w3",
+  "version": "1.0.0",
+  "description": "file-tree-w3 is a NodeJS app for serving file tree directories on a browser with a file preview.",
+  "main": "file-tree-w3.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "chokidar": "3.5.3",
+    "express": "4.17.2",
+    "jquery": "3.6.0",
+    "jstree": "3.3.12",
+    "websocket": "1.0.34"
+  },
+  "devDependencies": {},
+  "keywords": [
+    "file",
+    "tree",
+    "web"
+  ],
+  "author": "Hugobox",
+  "license": "ISC"
+}

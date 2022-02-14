@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset="utf-8">
+    <title>fileTreeW3</title>
+    <link rel="stylesheet" href="node_modules/jstree/dist/themes/default-dark/style.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  </head>
+
+  <body>
+    <h1>FileTreeW3</h1>
+    <div class="row">
+      <div id="tree" class="column">
+        <h2>File Tree</h2>
+        <button onclick="expand()"><i class="fa fa-expand" aria-hidden="true"></i>expand All</button>
+        <button onclick="collapse()"><i class="fa fa-compress" aria-hidden="true">collapse All</i></button>
+        <div id="jstree"></div>
+      </div>
+      <div class="column">
+        <h2>File Preview</h2>
+        <div id="data">Supports images and text files. (text files will be truncated after 1000 characters)</div>
+        <img id="img" src="" />
+      </div>
+    </div>
+
+    <script src="node_modules/jquery/dist/jquery.min.js"></script>
+    <script src="node_modules/jstree/dist/jstree.min.js"></script>
+
+    <script>
+      function expand() {
+        $('#jstree').jstree('open_all')
+      }
+      function collapse() {
+        $('#jstree').jstree('close_all')
+      }
+      </script>
+
+    <script>
+      const ws = new WebSocket('ws://localhost:9898/')
+      let treeArr = []
+      let treeObj = {}
+      let filesSet = new Set()
+      //let fileTree = require('file-size-tree')
+
+
+      function addPath(arr, obj = {}){
+        let component = arr.shift()
+        let icon = component.split("~")[1]
+        component = component.split("~")[0]
+        let current = obj[component] || (obj[component] = {text:component, icon:icon})
+        if (arr.length) {
+            addPath(arr, current.children || (current.children = {}))
+        }
+        return obj
+      }
+
+      function makeArray(obj){
+          let arr = Object.values(obj)
+          arr.filter(item => item.children).forEach(item => {
+              item.children = makeArray(item.children)
+          })
+          return arr
+      }
+
+      ws.onmessage = function(e) {
+        if (e.data.startsWith("tree")){
+          let treedata = e.data.slice(4)
+          let command = JSON.parse(treedata).event
+          let path = JSON.parse(treedata).path
+          if (command =="add"){
+            filesSet.add(path + "~jstree-file")
+          }else if (command =="addDir"){
+            filesSet.add(path + "~jstree-folder")
+          }else if(command == "unlink"){
+            filesSet.delete(path + "~jstree-file")
+          }else if(command == "unlinkDir"){
+            filesSet.delete(path + "~jstree-folder")
+          }
+          let files = (Array.from(filesSet))
+
+          let treeObj = files.reduce((obj, path) => addPath(path.split('/'), obj), {})
+
+          treeArr = makeArray(treeObj)
+            
+          $('#jstree').remove()
+            
+          let div = document.createElement('div')
+          div.setAttribute("id", "jstree")
+          let treediv = document.getElementById("tree")
+          treediv.appendChild(div)
+
+          $('#jstree').jstree({'core' : {
+            "themes": {
+                "name": "default-dark",
+                "dots": true,
+                "icons": true
+            }, 
+            'data' : treeArr}})
+
+          $('#jstree').on("changed.jstree", function (e, data) {
+            let path = $('#jstree').jstree(true).get_path(data.node,"/");
+            ws.send(path)
+          })
+        }else if(e.data.startsWith("data")){
+          let data = e.data.slice(4)
+          document.getElementById("data").innerText = data
+          document.getElementById("img").src = ""
+        }else if(e.data.startsWith("imgs")){
+          let imgs = e.data.slice(4)
+          document.getElementById("img").src = imgs
+          document.getElementById("data").innerText = ""
+        }
+      }
+    </script>
+    <style>
+      body {
+        background-color:#333;
+        margin-left: 40px;
+        color:white;
+      }
+      h1, h2 {
+        color:darkgrey;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      
+      /* Create two equal columns that floats next to each other */
+      .column {
+        float: left;
+        width: 50%;
+        padding: 10px;
+        height: 300px; /* Should be removed. Only for demonstration */
+      }
+      
+      /* Clear floats after the columns */
+      .row:after {
+        content: "";
+        display: table;
+        clear: both;
+      }
+    </style>
+  </body>
+</html>
