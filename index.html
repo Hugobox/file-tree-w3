@@ -17,10 +17,14 @@
         <button onclick="collapse()"><i class="fa fa-compress" aria-hidden="true">collapse All</i></button>
         <div id="jstree"></div>
       </div>
-      <div class="column">
+      <div class="column" style="
+      position: fixed;
+      /* float: right; */
+      right: 10px;
+  ">
         <h2>File Preview</h2>
         <div id="data">Supports images and text files. (text files will be truncated after 1000 characters)</div>
-        <img id="img" src="" />
+        <img id="img" src="" height="100%" width="height="100%"" />
       </div>
     </div>
 
