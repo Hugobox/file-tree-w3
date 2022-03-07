@@ -31,19 +31,24 @@ if (process.argv.length >= 1){
 	process.exit()
 }
 
+let watchedFiles = []
+let watcher = chokidar.watch(process.argv, {ignored: /^\./, persistent: true})
+watcher
+  .on('all', (event, path) => {
+	  let element = {}
+	  element.event = event
+	  element.path = path
+	watchedFiles.push(element)
+})
+
 server.listen(wsport)
 const wsServer = new WebSocketServer({
     httpServer: server
 })
 wsServer.on('request', function(request) {
-	var output = ""
-	var watcher = chokidar.watch(process.argv, {ignored: /^\./, persistent: true})
-	watcher
-	  .on('all', (event, path) => {
-	  console.log(event, path)
-	  sendEvent(event, path)
-	})
     const connection = request.accept(null, request.origin)
+	watchedFiles.forEach(sendEvent);
+	
     connection.on('message', function(message) {
         let file = message.utf8Data
         if (fs.statSync(file).isFile()){
@@ -57,10 +62,10 @@ wsServer.on('request', function(request) {
     connection.on('close', function(reasonCode, description) {
         console.log('Client has disconnected.')
     })
-	function sendEvent(event,path){
+	function sendEvent(element){
 		if (connection.connected) {
-            path = path.replace(/\\/g, "/")
-			connection.sendUTF("tree" + JSON.stringify({event:event, path:path}))
+            element.path = element.path.replace(/\\/g, "/")
+			connection.sendUTF("tree" + JSON.stringify({event:element.event, path:element.path}))
 		}
 	}
 })
