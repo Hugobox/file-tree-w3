@@ -56,14 +56,20 @@ wsServer.on('request', function(request) {
         if (fs.statSync(file).isFile()){
             if (file.endsWith(".jpg") || file.endsWith(".gif") || file.endsWith(".png")){
 				sharp(file)
-					.resize(400)
+					.resize(400,400, {
+						fit: 'inside',
+						withoutEnlargement : true
+					  })
 					.jpeg({ mozjpeg: true })
 					.toBuffer()
 					.then( data => { connection.sendUTF("imgs" + "data:image/gif;base64," + data.toString('base64') )})
-					.catch( err => { console.error(err)});
+					.catch( err => { console.error(err), 
+						connection.sendUTF("data" + err)});
             }else if (file.endsWith(".txt") || file.endsWith(".js") || file.endsWith(".json") || file.endsWith(".css") || file.endsWith(".html")){
                 connection.sendUTF("data" + fs.readFileSync(file, 'utf8').toString().slice(0,1000))
-            }
+            }else{
+				connection.sendUTF("data" + " incompatible filetype.")
+			}
         }
     })
     connection.on('close', function(reasonCode, description) {
