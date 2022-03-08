@@ -11,6 +11,7 @@
     "express": "4.17.2",
     "jquery": "3.6.0",
     "jstree": "3.3.12",
+    "sharp": "^0.30.2",
     "websocket": "1.0.34"
   },
   "devDependencies": {},

@@ -24,12 +24,12 @@
   ">
         <h2>File Preview</h2>
         <div id="data">Supports images and text files. (text files will be truncated after 1000 characters)</div>
-        <img id="img" src="" height="100%" width="height="100%"" />
+        <img id="img" src="" height="100%" width="100%" />
       </div>
     </div>
 
-    <script src="node_modules/jquery/dist/jquery.min.js"></script>
-    <script src="node_modules/jstree/dist/jstree.min.js"></script>
+    <script src="jquery/jquery.min.js"></script>
+    <script src="jstree/jstree.min.js"></script>
 
     <script>
       function expand() {
@@ -45,8 +45,6 @@
       let treeArr = []
       let treeObj = {}
       let filesSet = new Set()
-      //let fileTree = require('file-size-tree')
-
 
       function addPath(arr, obj = {}){
         let component = arr.shift()
@@ -86,7 +84,6 @@
           let treeObj = files.reduce((obj, path) => addPath(path.split('/'), obj), {})
 
           treeArr = makeArray(treeObj)
-            
           $('#jstree').remove()
             
           let div = document.createElement('div')
